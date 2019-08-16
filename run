@@ -1,4 +1,4 @@
 #!/bin/sh
 
-./gradlew clean build
-java -Djava.library.path=native/ -jar build/libs/ImageFilter-1.0-SNAPSHOT.jar
+./gradlew build
+java -Djava.library.path=native/ -jar build/libs/imagefilter.jar
