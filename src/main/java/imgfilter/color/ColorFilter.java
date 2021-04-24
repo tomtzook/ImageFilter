@@ -9,8 +9,8 @@ public class ColorFilter {
     private final IntegerProperty mMax;
 
     public ColorFilter(ColorSpectrum filterType) {
-        mMin = new SimpleIntegerProperty(filterType.range().start);
-        mMax = new SimpleIntegerProperty(filterType.range().end);
+        mMin = new SimpleIntegerProperty(filterType.getRange().start);
+        mMax = new SimpleIntegerProperty(filterType.getRange().end);
     }
 
     public IntegerProperty minProperty() {

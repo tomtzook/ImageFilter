@@ -1,9 +1,11 @@
 package imgfilter.ui;
 
 import imgfilter.color.ColorFilter;
+import imgfilter.color.ColorModel;
 import imgfilter.color.ColorSpectrum;
 import imgfilter.color.ColorModelFilter;
 import javafx.scene.Parent;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -23,13 +25,19 @@ import java.util.Map;
 
 public class Window extends Parent {
 
+    private final ColorModelFilter mColorModelFilter;
+
     private final Menu mStreamMenu;
 
     private final ImageView mImageView;
     private final ImageView mProcessed;
     private final List<ColorControl> mColorControls;
 
+    private final VBox mColorControlsParent;
+
     public Window(double imageWidth, double imageHeight, ColorModelFilter colorModelFilter) {
+        mColorModelFilter = colorModelFilter;
+
         mImageView = new ImageView();
         mImageView.setFitWidth(imageWidth);
         mImageView.setFitHeight(imageHeight);
@@ -38,19 +46,23 @@ public class Window extends Parent {
         mProcessed.setFitHeight(imageHeight);
         mColorControls = new ArrayList<>();
 
-        VBox colorControls = new VBox();
-        colorControls.setSpacing(5.0);
-        for (Map.Entry<ColorSpectrum, ColorFilter> entry : colorModelFilter.filters()) {
-            ColorSpectrum colorSpectrum = entry.getKey();
-            ColorFilter colorFilter = entry.getValue();
+        mColorControlsParent = new VBox();
+        mColorControlsParent.setSpacing(5.0);
 
-            ColorControl min = new ColorControl(colorSpectrum.name(), colorSpectrum.range(), colorFilter.minProperty(), colorSpectrum.range().start);
-            ColorControl max = new ColorControl(colorSpectrum.name(), colorSpectrum.range(), colorFilter.maxProperty(), colorSpectrum.range().end);
+        VBox colorControlsRoot = new VBox();
+        colorControlsRoot.setSpacing(10.0);
+        colorControlsRoot.getChildren().addAll(mColorControlsParent);
 
-            colorControls.getChildren().addAll(min, max);
-            mColorControls.add(min);
-            mColorControls.add(max);
-        }
+        ComboBox<ColorModel> colorModelComboBox = new ComboBox<>();
+        colorModelComboBox.getItems().addAll(ColorModel.values());
+        colorModelComboBox.getSelectionModel().select(0);
+        colorModelComboBox.getSelectionModel().selectedItemProperty()
+                .addListener((obs, o, n)-> {
+            loadColorControls(n);
+        });
+        colorControlsRoot.getChildren().add(colorModelComboBox);
+
+        loadColorControls(colorModelComboBox.getSelectionModel().getSelectedItem());
 
         HBox imageView = new HBox();
         imageView.setSpacing(10.0);
@@ -64,7 +76,7 @@ public class Window extends Parent {
         BorderPane root = new BorderPane();
         root.setTop(menuBar);
         root.setCenter(imageView);
-        root.setRight(colorControls);
+        root.setRight(colorControlsRoot);
 
         getChildren().add(root);
     }
@@ -92,5 +104,24 @@ public class Window extends Parent {
         MatOfByte buffer = new MatOfByte();
         Imgcodecs.imencode(".png", mat, buffer);
         return new Image(new ByteArrayInputStream(buffer.toArray()));
+    }
+
+    private void loadColorControls(ColorModel model) {
+        mColorControls.clear();
+        mColorControlsParent.getChildren().clear();
+
+        mColorModelFilter.switchModel(model);
+
+        for (Map.Entry<ColorSpectrum, ColorFilter> entry : mColorModelFilter.filters()) {
+            ColorSpectrum colorSpectrum = entry.getKey();
+            ColorFilter colorFilter = entry.getValue();
+
+            ColorControl min = new ColorControl(colorSpectrum.getName(), colorSpectrum.getRange(), colorFilter.minProperty(), colorSpectrum.getRange().start);
+            ColorControl max = new ColorControl(colorSpectrum.getName(), colorSpectrum.getRange(), colorFilter.maxProperty(), colorSpectrum.getRange().end);
+
+            mColorControlsParent.getChildren().addAll(min, max);
+            mColorControls.add(min);
+            mColorControls.add(max);
+        }
     }
 }

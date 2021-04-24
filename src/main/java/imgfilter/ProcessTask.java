@@ -31,15 +31,12 @@ public class ProcessTask implements Runnable {
 
         mUnprocessedConsumer.accept(mat);
 
+        if (mColorModelFilter.getModel() == null) {
+            return;
+        }
+
         Mat output = new Mat();
-
-        Imgproc.cvtColor(mat, output, Imgproc.COLOR_RGB2HSV);
-        Core.inRange(
-                output,
-                mColorModelFilter.getMinValues(),
-                mColorModelFilter.getMaxValues(),
-                output);
-
+        mColorModelFilter.filter(mat, output);
         mOutputConsumer.accept(output);
     }
 }

@@ -6,6 +6,7 @@ import com.castle.nio.zip.Zip;
 import com.castle.util.java.JavaSources;
 import com.castle.util.os.OperatingSystem;
 import com.castle.util.os.System;
+import imgfilter.color.ColorModel;
 import imgfilter.color.ColorModelFilter;
 import imgfilter.ui.ProcessingControl;
 import imgfilter.ui.Window;
