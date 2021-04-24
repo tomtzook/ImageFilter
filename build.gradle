@@ -3,6 +3,8 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.0.9'
 }
 
+def SUPPORTED_ARCHES = ['windowsx86-64', 'linuxx86-64']
+
 sourceCompatibility = JavaVersion.VERSION_11
 
 group 'ImageFilter'
@@ -25,7 +27,10 @@ dependencies {
     implementation 'com.github.tomtzook:castle:1.0.0'
 
     implementation group: "edu.wpi.first.thirdparty.frc${YEAR}.opencv", name: 'opencv-java', version: "$OPENCV_VERSION"
-    nativeZip group: "edu.wpi.first.thirdparty.frc${YEAR}.opencv", name: 'opencv-jni', version: "$OPENCV_VERSION", classifier: "$REMOTE_ARCH", transitive: false
+
+    SUPPORTED_ARCHES.forEach({
+        nativeZip group: "edu.wpi.first.thirdparty.frc${YEAR}.opencv", name: 'opencv-jni', version: "$OPENCV_VERSION", classifier: "$it", transitive: false
+    })
 }
 
 javafx {
@@ -40,10 +45,12 @@ application {
 
 task copyNatives(type: Copy) {
     from {
-        zipTree(configurations.nativeZip.singleFile).matching {
-            include '**/*.so'
-            include '**/*.dll'
-        }.files
+        configurations.nativeZip.collect {
+            zipTree(it).matching {
+                include '**/*.so'
+                include '**/*.dll'
+            }.files
+        }
     }
     into project.file("natives")
 }

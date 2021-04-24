@@ -4,10 +4,13 @@ import com.castle.nio.temp.TempPath;
 import com.castle.nio.zip.OpenZip;
 import com.castle.nio.zip.Zip;
 import com.castle.util.java.JavaSources;
+import com.castle.util.os.OperatingSystem;
+import com.castle.util.os.System;
 import imgfilter.color.ColorModelFilter;
 import imgfilter.ui.ProcessingControl;
 import imgfilter.ui.Window;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.opencv.core.Core;
@@ -44,7 +47,19 @@ public class Main extends Application {
     }
 
     private static void loadNatives() {
-        String[] classpath = System.getProperty("java.class.path").split(":");
+        String pattern;
+        switch (System.operatingSystem()) {
+            case Windows:
+                pattern = "^.*opencv_java\\d+\\.(?:dll)$";
+                break;
+            case Linux:
+                pattern = "^.*opencv_java\\d+\\.(?:so)$";
+                break;
+            default:
+                throw new AssertionError("unsupported platform");
+        }
+
+        String[] classpath = java.lang.System.getProperty("java.class.path").split(":");
         for (String pathStr : classpath) {
             Path path = Paths.get(pathStr);
             if (!Files.isRegularFile(path)) {
@@ -54,10 +69,10 @@ public class Main extends Application {
             try {
                 Zip zip = Zip.fromPath(path);
                 try (OpenZip openZip = zip.open()) {
-                    Path jar = openZip.find(Pattern.compile("^.*opencv_java\\d+\\.(?:so|dll)$"));
+                    Path jar = openZip.find(Pattern.compile(pattern));
                     TempPath tempPath = openZip.extract(jar);
 
-                    System.load(tempPath.originalPath().toAbsolutePath().toString());
+                    java.lang.System.load(tempPath.originalPath().toAbsolutePath().toString());
                     return;
                 }
             } catch (IOException e) {
