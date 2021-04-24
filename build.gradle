@@ -43,6 +43,27 @@ application {
     applicationName = 'imagefilter'
 }
 
+task createRunShortcut {
+    def tmp = file("${project.buildDir}/tmp")
+    def file = new File(tmp, 'run.bat')
+    outputs.file file
+
+    doLast {
+        tmp.mkdirs()
+        file.write("call bin\\${application.applicationName}.bat")
+    }
+}
+
+distributions {
+    main {
+        contents {
+            from(project.tasks.createRunShortcut) {
+                into ''
+            }
+        }
+    }
+}
+
 task copyNatives(type: Copy) {
     from {
         configurations.nativeZip.collect {

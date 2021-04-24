@@ -36,6 +36,7 @@ public class Main extends Application {
 
         Scene scene = new Scene(mWindow, 800, 400);
         primaryStage.setScene(scene);
+        primaryStage.setTitle("Image Filter");
         primaryStage.setOnCloseRequest((e) -> {
             mProcessingControl.shutdown();
         });

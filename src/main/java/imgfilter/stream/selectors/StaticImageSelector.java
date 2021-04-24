@@ -35,7 +35,8 @@ public class StaticImageSelector implements StreamSelector {
 
     private Optional<File> selectImageFile() {
         FileChooser chooser = new FileChooser();
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Image File", "*.jpg");
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Image File",
+                "*.jpg", "*.png");
         chooser.getExtensionFilters().add(extFilter);
         chooser.setSelectedExtensionFilter(extFilter);
 
