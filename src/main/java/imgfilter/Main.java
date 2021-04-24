@@ -1,5 +1,9 @@
 package imgfilter;
 
+import com.castle.nio.temp.TempPath;
+import com.castle.nio.zip.OpenZip;
+import com.castle.nio.zip.Zip;
+import com.castle.util.java.JavaSources;
 import imgfilter.color.ColorModelFilter;
 import imgfilter.ui.ProcessingControl;
 import imgfilter.ui.Window;
@@ -7,6 +11,13 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.opencv.core.Core;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 public class Main extends Application {
 
@@ -28,7 +39,31 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        loadNatives();
         launch(args);
+    }
+
+    private static void loadNatives() {
+        String[] classpath = System.getProperty("java.class.path").split(":");
+        for (String pathStr : classpath) {
+            Path path = Paths.get(pathStr);
+            if (!Files.isRegularFile(path)) {
+                continue;
+            }
+
+            try {
+                Zip zip = Zip.fromPath(path);
+                try (OpenZip openZip = zip.open()) {
+                    Path jar = openZip.find(Pattern.compile("^.*opencv_java\\d+\\.(?:so|dll)$"));
+                    TempPath tempPath = openZip.extract(jar);
+
+                    System.load(tempPath.originalPath().toAbsolutePath().toString());
+                    return;
+                }
+            } catch (IOException e) {
+            }
+        }
+
+        throw new AssertionError("Unable to load opencv");
     }
 }

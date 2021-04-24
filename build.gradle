@@ -1,36 +1,51 @@
 plugins {
-    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.9'
 }
+
+sourceCompatibility = JavaVersion.VERSION_11
 
 group 'ImageFilter'
 version '1.0'
-
-sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
 
     maven {
-        url "https://oss.sonatype.org/content/repositories/snapshots"
+        url('https://frcmaven.wpi.edu/artifactory/release')
     }
+}
+
+configurations {
+    nativeZip
+    implementation.extendsFrom nativeZip
 }
 
 dependencies {
-    compile group: 'org.openpnp', name: 'opencv', version: '3.2.0-0'
+    implementation 'com.github.tomtzook:castle:1.0.0'
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation group: "edu.wpi.first.thirdparty.frc${YEAR}.opencv", name: 'opencv-java', version: "$OPENCV_VERSION"
+    nativeZip group: "edu.wpi.first.thirdparty.frc${YEAR}.opencv", name: 'opencv-jni', version: "$OPENCV_VERSION", classifier: "$REMOTE_ARCH", transitive: false
 }
 
-jar {
-    archiveName = 'imagefilter.jar'
+javafx {
+    version = '11'
+    modules = [ 'javafx.controls' ]
+}
 
+application {
+    mainClassName = 'imgfilter.Main'
+    applicationName = 'imagefilter'
+}
+
+task copyNatives(type: Copy) {
     from {
-        configurations.compile.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
+        zipTree(configurations.nativeZip.singleFile).matching {
+            include '**/*.so'
+            include '**/*.dll'
+        }.files
     }
-
-    manifest {
-        attributes 'Main-Class': 'imgfilter.Main'
-    }
+    into project.file("natives")
 }
+
+project.processResources.dependsOn copyNatives
