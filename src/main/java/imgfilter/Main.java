@@ -49,38 +49,6 @@ public class Main extends Application {
     }
 
     private static void loadNatives() {
-        String pattern;
-        switch (System.operatingSystem()) {
-            case Windows:
-                pattern = "^.*opencv_java\\d+\\.(?:dll)$";
-                break;
-            case Linux:
-                pattern = "^.*opencv_java\\d+\\.(?:so)$";
-                break;
-            default:
-                throw new AssertionError("unsupported platform");
-        }
-
-        String[] classpath = java.lang.System.getProperty("java.class.path").split(":");
-        for (String pathStr : classpath) {
-            Path path = Paths.get(pathStr);
-            if (!Files.isRegularFile(path)) {
-                continue;
-            }
-
-            try {
-                Zip zip = Zip.fromPath(path);
-                try (OpenZip openZip = zip.open()) {
-                    Path jar = openZip.find(Pattern.compile(pattern));
-                    TempPath tempPath = openZip.extract(jar);
-
-                    java.lang.System.load(tempPath.originalPath().toAbsolutePath().toString());
-                    return;
-                }
-            } catch (IOException e) {
-            }
-        }
-
-        throw new AssertionError("Unable to load opencv");
+        Natives.load(Natives.OPENCV_LIBNAME);
     }
 }
