@@ -12,8 +12,7 @@ public enum ColorModel {
     ) {
         @Override
         public void changeColorSpace(Mat source, Mat output) {
-            // it is RGB
-            source.copyTo(output);
+            Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2RGB);
         }
     },
     HSV(
@@ -23,7 +22,7 @@ public enum ColorModel {
     ) {
         @Override
         public void changeColorSpace(Mat source, Mat output) {
-            Imgproc.cvtColor(source, output, Imgproc.COLOR_RGB2HSV);
+            Imgproc.cvtColor(source, output, Imgproc.COLOR_BGR2HSV);
         }
     }
     ;
